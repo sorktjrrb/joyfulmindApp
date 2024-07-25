@@ -1,6 +1,5 @@
 package com.yh04.joyfulmindapp;
 
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,14 +17,13 @@ import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
+import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.yh04.joyfulmindapp.api.RetrofitClientInstance;
 import com.yh04.joyfulmindapp.api.SentimentAnalysisService;
 import com.yh04.joyfulmindapp.model.SentimentRequest;
 import com.yh04.joyfulmindapp.model.SentimentResponse;
-
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,6 +34,8 @@ import java.util.Map;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
+import android.graphics.Color;
 
 public class DetailActivity extends AppCompatActivity {
     private FirebaseFirestore db;
@@ -116,44 +116,71 @@ public class DetailActivity extends AppCompatActivity {
             return;
         }
 
+        // 감정 수치 총합 계산
+        int totalCount = emotionCountMap.values().stream().mapToInt(Integer::intValue).sum();
+
         List<PieEntry> pieEntries = new ArrayList<>();
         List<BarEntry> barEntries = new ArrayList<>();
-        String[] emotions = {"fear", "disgust", "surprise", "sadness", "angry", "happiness", "neutral"};
+        String[] emotions = {"fear", "disgust", "surprise", "sadness", "angry", "happiness"};
 
+        // 감정 수치를 퍼센트로 변환
+        Map<String, Float> emotionPercentageMap = new HashMap<>();
+        for (Map.Entry<String, Integer> entry : emotionCountMap.entrySet()) {
+            emotionPercentageMap.put(entry.getKey(), (entry.getValue() / (float) totalCount) * 100);
+        }
+
+        // 상위 3개의 감정을 파이 차트에 추가 (neutral 제외)
+        emotionPercentageMap.entrySet().stream()
+                .filter(entry -> !"neutral".equals(entry.getKey())) // neutral 제외
+                .sorted(Map.Entry.<String, Float>comparingByValue().reversed())
+                .limit(3)
+                .forEach(entry -> pieEntries.add(new PieEntry(entry.getValue(), entry.getKey())));
+
+        // 모든 감정을 바 차트에 추가
         for (int i = 0; i < emotions.length; i++) {
-            float value = emotionCountMap.getOrDefault(emotions[i], 0);
-            Log.d("DetailActivity", "Emotion: " + emotions[i] + ", Value: " + value);
-            if (i < 4) {
-                pieEntries.add(new PieEntry(value, emotions[i]));
-            } else {
-                barEntries.add(new BarEntry(i, value));
-            }
+            float value = emotionPercentageMap.getOrDefault(emotions[i], 0f);
+            barEntries.add(new BarEntry(i, value));
         }
 
         // Pie Chart
         PieDataSet pieDataSet = new PieDataSet(pieEntries, "");
         pieDataSet.setColors(ColorTemplate.COLORFUL_COLORS);
         pieDataSet.setValueTextColor(Color.BLACK);
-        pieDataSet.setValueTextSize(15f);
+        pieDataSet.setValueTextSize(15f); // 글자 크기 키우기
+        pieDataSet.setValueFormatter(new PercentFormatter()); // 퍼센트 표시
         pieChart.setData(new PieData(pieDataSet));
         pieChart.getDescription().setEnabled(false);
         pieChart.setCenterText("감정 분석");
+        pieChart.setCenterTextSize(20f); // 센터 텍스트 크기 키우기
         pieChart.animate();
+        pieChart.setEntryLabelTextSize(15f); // 항목 레이블 텍스트 크기 키우기
+        pieChart.invalidate(); // 차트 강제 업데이트
 
         // Bar Chart
         BarDataSet barDataSet = new BarDataSet(barEntries, "");
         barDataSet.setColors(ColorTemplate.MATERIAL_COLORS);
         barDataSet.setValueTextColor(Color.BLACK);
-        barDataSet.setValueTextSize(16f);
+        barDataSet.setValueTextSize(16f); // 글자 크기 키우기
         BarData barData = new BarData(barDataSet);
+        barData.setBarWidth(0.5f); // 바 굵기 줄이기
         XAxis xAxis = barChart.getXAxis();
         xAxis.setValueFormatter(new IndexAxisValueFormatter(emotions));
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setGranularity(1f);
         xAxis.setGranularityEnabled(true);
+        xAxis.setTextSize(15f); // x축 텍스트 크기 키우기
         barChart.setData(barData);
         barChart.getDescription().setEnabled(false);
         barChart.animateY(2000);
+        barChart.getLegend().setTextSize(15f); // 범례 텍스트 크기 키우기
+        barChart.invalidate(); // 차트 강제 업데이트
     }
 
+    // 퍼센트 포맷터 클래스
+    public static class PercentFormatter extends ValueFormatter {
+        @Override
+        public String getFormattedValue(float value) {
+            return String.format("%.1f%%", value);
+        }
+    }
 }

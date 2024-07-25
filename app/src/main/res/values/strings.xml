@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">joyfulmindApp</string>
+
+    <string name="imgTitle_description">Sentiment Analysis Report</string>
+    <string name="imgTitle2_description">Song</string>
+    <string name="pieChart_description">Pie chart displaying the top 3 emotions</string>
+    <string name="barChart_description">Bar chart displaying all emotions</string>
 </resources>

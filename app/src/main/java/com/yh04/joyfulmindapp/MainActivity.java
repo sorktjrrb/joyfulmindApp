@@ -6,14 +6,11 @@ import android.view.View;
 import android.widget.DatePicker;
 import android.widget.ImageView;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.Calendar;
@@ -75,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
                 .whereEqualTo("nickname", nickname)
                 .whereGreaterThanOrEqualTo("timestamp", startOfDay.getTime())
                 .whereLessThanOrEqualTo("timestamp", endOfDay.getTime())
+                .orderBy("timestamp", Query.Direction.ASCENDING)
                 .get()
                 .addOnSuccessListener(new com.google.android.gms.tasks.OnSuccessListener<QuerySnapshot>() {
                     @Override
