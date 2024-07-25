@@ -8,6 +8,9 @@ import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -43,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
                 imgDetail.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        fetchChatData(selectedDate, "대석규"); // 닉네임을 여기에 추가
+                        fetchChatData(selectedDate, "비둘기"); // 닉네임을 여기에 추가
                     }
                 });
             }
@@ -74,24 +77,30 @@ public class MainActivity extends AppCompatActivity {
                 .whereLessThanOrEqualTo("timestamp", endOfDay.getTime())
                 .orderBy("timestamp", Query.Direction.ASCENDING)
                 .get()
-                .addOnSuccessListener(new com.google.android.gms.tasks.OnSuccessListener<QuerySnapshot>() {
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                        StringBuilder chatData = new StringBuilder();
-                        for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
-                            String message = document.getString("message");
-                            chatData.append(message).append("\n");
-                        }
+                        if (queryDocumentSnapshots.isEmpty()) {
+                            // 데이터가 없는 경우 스낵바를 사용하여 안내 팝업을 표시합니다.
+                            Snackbar.make(findViewById(R.id.main), "해당 날짜의 채팅 기록이 필요합니다.", Snackbar.LENGTH_LONG).show();
+                        } else {
+                            StringBuilder chatData = new StringBuilder();
+                            for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                                String message = document.getString("message");
+                                chatData.append(message).append("\n");
+                            }
 
-                        Intent intent = new Intent(MainActivity.this, DetailActivity.class);
-                        intent.putExtra("chatData", chatData.toString());
-                        startActivity(intent);
+                            Intent intent = new Intent(MainActivity.this, DetailActivity.class);
+                            intent.putExtra("chatData", chatData.toString());
+                            startActivity(intent);
+                        }
                     }
                 })
-                .addOnFailureListener(new com.google.android.gms.tasks.OnFailureListener() {
+                .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(Exception e) {
                         // 실패 시 처리
+                        Snackbar.make(findViewById(R.id.main), "데이터를 가져오는 중 오류가 발생했습니다.", Snackbar.LENGTH_LONG).show();
                     }
                 });
     }

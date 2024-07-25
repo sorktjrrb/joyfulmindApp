@@ -116,25 +116,40 @@ public class DetailActivity extends AppCompatActivity {
             return;
         }
 
-        // 감정 수치 총합 계산
+        // 감정 수치 총합 계산 (neutral 포함)
         int totalCount = emotionCountMap.values().stream().mapToInt(Integer::intValue).sum();
 
         List<PieEntry> pieEntries = new ArrayList<>();
         List<BarEntry> barEntries = new ArrayList<>();
         String[] emotions = {"fear", "disgust", "surprise", "sadness", "angry", "happiness"};
 
-        // 감정 수치를 퍼센트로 변환
+        // 감정 수치를 퍼센트로 변환 (neutral 제외하고 나머지 감정들로 100% 비율 맞추기)
         Map<String, Float> emotionPercentageMap = new HashMap<>();
+        int totalNonNeutralCount = emotionCountMap.entrySet().stream()
+                .filter(entry -> !"neutral".equals(entry.getKey()))
+                .mapToInt(Map.Entry::getValue)
+                .sum();
+
         for (Map.Entry<String, Integer> entry : emotionCountMap.entrySet()) {
-            emotionPercentageMap.put(entry.getKey(), (entry.getValue() / (float) totalCount) * 100);
+            if (!"neutral".equals(entry.getKey())) {
+                emotionPercentageMap.put(entry.getKey(), (entry.getValue() / (float) totalNonNeutralCount) * 100);
+            }
         }
 
         // 상위 3개의 감정을 파이 차트에 추가 (neutral 제외)
         emotionPercentageMap.entrySet().stream()
-                .filter(entry -> !"neutral".equals(entry.getKey())) // neutral 제외
+                .filter(entry -> entry.getValue() > 0) // 0% 제외
                 .sorted(Map.Entry.<String, Float>comparingByValue().reversed())
                 .limit(3)
                 .forEach(entry -> pieEntries.add(new PieEntry(entry.getValue(), entry.getKey())));
+
+        // 감정이 1개 또는 2개인 경우에도 해당 감정만 표시
+        if (pieEntries.isEmpty()) {
+            emotionPercentageMap.entrySet().stream()
+                    .filter(entry -> entry.getValue() > 0) // 0% 제외
+                    .sorted(Map.Entry.<String, Float>comparingByValue().reversed())
+                    .forEach(entry -> pieEntries.add(new PieEntry(entry.getValue(), entry.getKey())));
+        }
 
         // 모든 감정을 바 차트에 추가
         for (int i = 0; i < emotions.length; i++) {
