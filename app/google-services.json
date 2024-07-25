@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "584344942510",
+    "project_id": "joyfulmindapp",
+    "storage_bucket": "joyfulmindapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:584344942510:android:5c83125f13f66fa927ba3f",
+        "android_client_info": {
+          "package_name": "com.yh04.joyfulmindapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "584344942510-5r7h85n6385hh20qse8gh1ifvsdk4ln3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJsh9KkYImKdFOCdaGl8ydyqXBmjYUw80"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "584344942510-5r7h85n6385hh20qse8gh1ifvsdk4ln3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
